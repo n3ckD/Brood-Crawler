@@ -92,6 +92,8 @@ if __name__ == "__main__":
 			f.write(msg)
 			f.write("\n".join(visited)+"\n")
 
+	# close logging file
 	if log == True:
 		f.close()
+
 	exit("Exiting: Depth reached")

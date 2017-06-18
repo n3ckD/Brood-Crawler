@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/python3
 
 import requests as req
 import re as regx
@@ -6,8 +6,13 @@ import argparse
 import os
 import time
 
-# Initialization function
-# Creates parser for arguments
+''' 
+	Initialization function.
+	Creates parser for arguments
+	required fields are: url, check, depth
+	optional fields are: log
+	Returns: url, (int)depth, (list)urls, check, log
+'''
 def init():
 	print ("The spider comes...\n"
 	"  / _ \\\n"
@@ -22,7 +27,7 @@ def init():
 	parser.add_argument("--log", help="Log the output size of queue, and visited sites. Filename based on check value", action="store_true")
 	args = parser.parse_args()
 	if args.log:
-		raw_input("Logging on. Press any key to begin...")
+		raw_input("Logging Enabled. Press any key to begin...")
 		log = True
 	else:
 		log = False
@@ -30,9 +35,12 @@ def init():
 	return args.url, int(args.depth), [args.url], args.check, log
 
 
-# Grab all the URLs from the given webpage
+'''
+	Grab all the URLs from the given webpage and parse them into a list
+	Returns: list
+'''
 def getURLs(base, check):
-#	print "Parsing URLs found in:", base
+	# print("Parsing URLs found in:", base)
 	r = req.get(base)
 	subs = [(u.start(),u.end()) for u in regx.finditer('http(|s)\:\/\/[a-zA-Z0-9-\.\/\?\=\;,]+(?=\")', r.text)]
 	urls = []
@@ -43,12 +51,18 @@ def getURLs(base, check):
 	return urls
 
 
-# Check if the parsed URL should be checked
+'''
+	Check if the parsed URL should be checked and checks if given regex matches URL
+	Returns: bool
+'''
 def checkParse(urls, check):
 	if regx.search(check, urls):
 		return True
+	return False
 
-# Main function
+'''
+	Main function to do the things
+'''
 if __name__ == "__main__":
 	base, depth, queue, check, log = init()
 
@@ -79,14 +93,14 @@ if __name__ == "__main__":
 		# check if the urls are already visited or in the current queue. if not, add them to the queue
 		for i in temp_urls:
 			if i not in visited and i not in queue:
-#				print "Appended", i
+				# print "Appended", i
 				queue.append(i)
 		
-#		print "Queue",queue
-#		print "Visited", visited
+		# print("Queue",queue)
+		# print("Visited", visited)
 		msg = "-"*20+"\n" + "Queue size: " + str(len(queue)) + "\nVisited size: " + str(len(visited)) + "\n"+"-"*20+"\n"
 
-		print msg
+		print(msg)
 
 		if log == True:
 			f.write(msg)

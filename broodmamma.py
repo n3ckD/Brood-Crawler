@@ -26,15 +26,13 @@ def init():
 	parser.add_argument("url", help="Base URL to crawl")
 	parser.add_argument("check", help="URL regex to test against when checking where to go")
 	parser.add_argument("depth", help="Number of cycles to query \033[91mThis is greater than exponential, BE CAREFUL\033[0m")
-	parser.add_argument("--log", help="Log the output size of queue, and visited sites. Filename based on check value", action="store_true")
+	parser.add_argument("--log", help="Log the output size of queue, and visited sites. Filename based on check value", default=False, action="store_true")
+	parser.add_argument("--threads", type=int, help="Number of threads to run", default=1)
 	args = parser.parse_args()
-	if args.log:
-		raw_input("Logging Enabled. Press any key to begin...")
-		log = True
-	else:
-		log = False
+	if args.log == True:
+		input("Logging Enabled. Press any key to begin...")
 
-	return args.url, int(args.depth), [args.url], args.check, log
+	return args.url, int(args.depth), [args.url], args.check, args.log, args.threads
 
 
 '''
@@ -50,9 +48,10 @@ def getURLs(base, check):
 		u = r.text[pair[0]:pair[1]]
 		if checkParse(u, check):
 			urls.append(u)
-	print(base + "-"*50 + ''.join(urls))
-	input("Wait")
+#	print(base + "-"*50 + ''.join(urls))
+#	input("Wait")
 	return urls
+
 
 '''
 	Check if the parsed URL should be checked and checks if given regex matches URL
@@ -67,10 +66,9 @@ def checkParse(urls, check):
 	Main function to do the things
 '''
 if __name__ == "__main__":
-	base, depth, queue, check, log = init()
-	visited = []
+	base, depth, queue, check, log, threads = init()
 
-	msg = "Base: " + base + " | Depth: " + str(depth)  + " | Queue: " + str(queue) + "\n"
+	msg = "Base: " + base + " | Depth: " + str(depth)  + " | Queue: " + str(queue) + " | Threads: " + str(threads) + "\n"
 
 	# open file for logging	
 	if log == True:
@@ -78,6 +76,8 @@ if __name__ == "__main__":
 		f = open(log_file, "w")
 		f.write(msg)
 	
+	visited = []
+
 	# make sure we dont spider forever, and ever, and ever....
 	for d in range(0, depth):
 		temp_urls = []
@@ -86,15 +86,10 @@ if __name__ == "__main__":
 		if len(queue) == 0:
 			exit("Exiting: Queue empty")
 	
-		# Remove item from queue and get all URLs from it	
-#		while queue != []:
-#			u = queue.pop(0)
-#			visited.append(u)
-#			temp_urls += getURLs(u, check)
-		pool = ThreadPool(4)
-		results = pool.starmap(getURLs, zip(queue, itertools.repeat(check)))[0]
-		temp_urls = results
-
+		# make threads do WORK!
+		with ThreadPool(threads) as pool:
+			results = pool.starmap(getURLs, zip(queue, itertools.repeat(check)))
+		temp_urls = itertools.chain(*results)
 		visited += queue
 		queue = []
 

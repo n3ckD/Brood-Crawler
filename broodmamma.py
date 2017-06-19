@@ -54,7 +54,6 @@ def getURLs(base, check):
 	input("Wait")
 	return urls
 
-
 '''
 	Check if the parsed URL should be checked and checks if given regex matches URL
 	Returns: bool
@@ -69,6 +68,7 @@ def checkParse(urls, check):
 '''
 if __name__ == "__main__":
 	base, depth, queue, check, log = init()
+	visited = []
 
 	msg = "Base: " + base + " | Depth: " + str(depth)  + " | Queue: " + str(queue) + "\n"
 
@@ -78,8 +78,6 @@ if __name__ == "__main__":
 		f = open(log_file, "w")
 		f.write(msg)
 	
-	visited = []
-
 	# make sure we dont spider forever, and ever, and ever....
 	for d in range(0, depth):
 		temp_urls = []

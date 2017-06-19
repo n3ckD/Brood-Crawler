@@ -34,7 +34,6 @@ def init():
 
 	return args.url, int(args.depth), [args.url], args.check, args.log, args.threads
 
-
 '''
 	Grab all the URLs from the given webpage and parse them into a list
 	Returns: list
@@ -48,10 +47,7 @@ def getURLs(base, check):
 		u = r.text[pair[0]:pair[1]]
 		if checkParse(u, check):
 			urls.append(u)
-#	print(base + "-"*50 + ''.join(urls))
-#	input("Wait")
 	return urls
-
 
 '''
 	Check if the parsed URL should be checked and checks if given regex matches URL

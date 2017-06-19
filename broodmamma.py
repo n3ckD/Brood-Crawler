@@ -67,7 +67,7 @@ if __name__ == "__main__":
 	msg = "Base: " + base + " | Depth: " + str(depth)  + " | Queue: " + str(queue) + " | Threads: " + str(threads) + "\n"
 
 	# open file for logging	
-	if log == True:
+	if log:
 		log_file = check+'-'+str(int(time.time()))
 		f = open(log_file, "w")
 		f.write(msg)
@@ -92,7 +92,7 @@ if __name__ == "__main__":
 		# check if the urls are already visited or in the current queue. if not, add them to the queue
 		for i in temp_urls:
 			if i not in visited and i not in queue:
-				# print "Appended", i
+				# print("Appended", i)
 				queue.append(i)
 		
 		# print("Queue",queue)
@@ -101,12 +101,12 @@ if __name__ == "__main__":
 
 		print(msg)
 
-		if log == True:
+		if log:
 			f.write(msg)
 			f.write("\n".join(visited)+"\n")
 
 	# close logging file
-	if log == True:
+	if log:
 		f.close()
 
 	exit("Exiting: Depth reached")

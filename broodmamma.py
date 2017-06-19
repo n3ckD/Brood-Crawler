@@ -5,6 +5,8 @@ import re as regx
 import argparse
 import os
 import time
+import itertools
+from multiprocessing.dummy import Pool as ThreadPool 
 
 ''' 
 	Initialization function.
@@ -48,6 +50,8 @@ def getURLs(base, check):
 		u = r.text[pair[0]:pair[1]]
 		if checkParse(u, check):
 			urls.append(u)
+	print(base + "-"*50 + ''.join(urls))
+	input("Wait")
 	return urls
 
 
@@ -85,10 +89,16 @@ if __name__ == "__main__":
 			exit("Exiting: Queue empty")
 	
 		# Remove item from queue and get all URLs from it	
-		while queue != []:
-			u = queue.pop(0)
-			visited.append(u)
-			temp_urls += getURLs(u, check)
+#		while queue != []:
+#			u = queue.pop(0)
+#			visited.append(u)
+#			temp_urls += getURLs(u, check)
+		pool = ThreadPool(4)
+		results = pool.starmap(getURLs, zip(queue, itertools.repeat(check)))[0]
+		temp_urls = results
+
+		visited += queue
+		queue = []
 
 		# check if the urls are already visited or in the current queue. if not, add them to the queue
 		for i in temp_urls:

@@ -28,17 +28,29 @@ def init():
 	parser.add_argument("depth", help="Number of cycles to query \033[91mThis is greater than exponential, BE CAREFUL\033[0m")
 	parser.add_argument("--log", help="Log the output size of queue, and visited sites. Filename based on check value", default=False, action="store_true")
 	parser.add_argument("--threads", type=int, help="Number of threads to run", default=1)
+
+	parser.add_argument("--js", help="Scan visited pages for javascript blocks and note where they exist", default=False, action="store_true")
+	parser.add_argument("--php", help="Scan visited pages for php blocks and note where they exist", default=False, action="store_true")
+
 	args = parser.parse_args()
 	if args.log == True:
 		input("Logging Enabled. Press any key to begin...")
 
-	return args.url, int(args.depth), [args.url], args.check, args.log, args.threads
+	scripts = []
+	if args.js:
+		scripts.append('js')
+	if args.php:
+		scripts.append('php')
+	if scripts != []:
+		print("Script logging enabled. Checking for:",scripts)
+	
+	return args.url, int(args.depth), [args.url], args.check, args.log, args.threads, scripts
 
 '''
 	Grab all the URLs from the given webpage and parse them into a list
 	Returns: list
 '''
-def getURLs(base, check):
+def crawler(base, check, scripts):
 	# print("Parsing URLs found in:", base)
 	r = req.get(base)
 	subs = [(u.start(),u.end()) for u in regx.finditer('http(|s)\:\/\/[a-zA-Z0-9-\.\/\?\=\;,]+(?=\")', r.text)]
@@ -47,6 +59,12 @@ def getURLs(base, check):
 		u = r.text[pair[0]:pair[1]]
 		if checkParse(u, check):
 			urls.append(u)
+
+	if scripts != []:
+		detected = checkScript(r.text, scripts)
+		if detected != []:
+			for d in detected:
+				print("Found",d[0],"script in",base)
 	return urls
 
 '''
@@ -59,10 +77,30 @@ def checkParse(urls, check):
 	return False
 
 '''
+	Check for certain types of scripts found on the crawled pages and log them
+	Returns: string
+'''
+def checkScript(page, scripts):
+	found = []
+	for s in scripts:
+		if s == 'js':
+			subs = [(u.start(),u.end()) for u in regx.finditer('\<script.*\<\/script\>', page, regx.DOTALL)]
+			for pair in subs:
+				c = page[pair[0]:pair[1]]
+				found.append([s,c])
+
+		if s == 'php':
+			subs = [(u.start(),u.end()) for u in regx.finditer('\<\?php.*\?\>', page, regx.DOTALL)]
+			for pair in subs:
+				c = page[pair[0]:pair[1]]
+				found.append([s,c])
+	return found
+
+'''
 	Main function to do the things
 '''
 if __name__ == "__main__":
-	base, depth, queue, check, log, threads = init()
+	base, depth, queue, check, log, threads, scripts = init()
 
 	msg = "Base: " + base + " | Depth: " + str(depth)  + " | Queue: " + str(queue) + " | Threads: " + str(threads) + "\n"
 
@@ -82,9 +120,9 @@ if __name__ == "__main__":
 		if len(queue) == 0:
 			exit("Exiting: Queue empty")
 	
-		# make threads do WORK!
+		# make threads do WORK! This portion does the scan for URLs alone
 		with ThreadPool(threads) as pool:
-			results = pool.starmap(getURLs, zip(queue, itertools.repeat(check)))
+			results = pool.starmap(crawler, zip(queue, itertools.repeat(check), itertools.repeat(scripts)))
 		temp_urls = itertools.chain(*results)
 		visited += queue
 		queue = []

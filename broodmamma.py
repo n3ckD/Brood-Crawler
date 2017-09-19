@@ -78,7 +78,7 @@ def checkParse(urls, check):
 
 '''
 	Check for certain types of scripts found on the crawled pages and log them
-	Returns: string
+	Returns: list of arrays
 '''
 def checkScript(page, scripts):
 	found = []

@@ -1,4 +1,4 @@
-# Brood-Crawler
+# Web-Crawler
 Python web scraper for clicking all the links.
 
 # Disclaimer
